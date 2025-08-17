@@ -114,7 +114,7 @@ useEffect(() => {
 
   return (
     <main style={{ maxWidth: 820, margin: "28px auto", padding: 16, background: "#000", color: "#fff" }}>
-      <h1 style={{ marginBottom: 8 }}>N2D</h1>
+      <h1 style={{ marginBottom: 8 }}>Paper Notes 2 Digital Notes</h1>
       <p style={{ marginTop: 0, marginBottom: 16 }}>
         Upload photos of your handwritten notes. Reorder them by dragging, then click Convert to get a
         single Markdown transcription. Your API key is stored directly on your device in your browser. We do not collect or store your data.
