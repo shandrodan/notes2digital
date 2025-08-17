@@ -4,11 +4,14 @@ import OpenAI from "openai";
 
 export async function POST(req) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      return new Response("Server error: missing OPENAI_API_KEY in environment", { status: 500 });
+    const formData = await req.formData();
+    const userApiKey = formData.get("apiKey");
+    const model = formData.get("model") || "gpt-5-mini";
+
+    if (!userApiKey) {
+      return new Response("Missing API key", { status: 400 });
     }
 
-    const formData = await req.formData();
     const files = formData.getAll("file");
     if (!files || files.length === 0) {
       return new Response("No files uploaded", { status: 400 });
@@ -35,21 +38,20 @@ export async function POST(req) {
       }
     }
 
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const content = [];
+    const client = new OpenAI({ apiKey: userApiKey });
 
-    content.push({
-      type: "input_text",
-      text: `You are given ${files.length} image(s) of handwritten student notes. Transcribe the content into Markdown format suitable for Notion.\n\nRules:\n1) Transcribe text exactly.\n2) Preserve headings, lists, spacing.\n3) Describe drawings as (Drawing description).\n4) No extra explanations.\n5) Don't Wrap output in \`\`\`markdown code block.\n\nSeparate multiple images with lines: --- Page X ---`,
-    });
+    const content = [
+      {
+        type: "input_text",
+        text: `You are given ${files.length} image(s) of handwritten student notes. Transcribe the content into Markdown format suitable for Notion.\n\nRules:\n1) Transcribe text exactly.\n2) Preserve headings, lists, spacing.\n3) Describe drawings as (Drawing description).\n4) No extra explanations.\n5) Don't wrap output in markdown code block.\n\nSeparate multiple images with lines: --- Page X ---`,
+      },
+    ];
 
     for (const file of files) {
       if (!file || typeof file === "string") continue;
       const bytes = await file.arrayBuffer();
       const mimeFromFile =
-        file.type &&
-        file.type.startsWith("image/") &&
-        file.type !== "application/octet-stream"
+        file.type && file.type.startsWith("image/") && file.type !== "application/octet-stream"
           ? file.type
           : null;
       const mime = mimeFromFile || guessMime(file.name);
@@ -59,25 +61,28 @@ export async function POST(req) {
     }
 
     const response = await client.responses.create({
-      model: "gpt-5-mini",
+      model,
       input: [{ role: "user", content }],
     });
 
     let text = "";
-    if (typeof response.output_text === "string" && response.output_text.trim()) {
-      text = response.output_text;
+    if (response.output_text) {
+      text = response.output_text.trim();
     } else if (Array.isArray(response.output)) {
       text = response.output
         .flatMap((o) => o.content || [])
         .map((c) => (typeof c?.text === "string" ? c.text : ""))
         .join("\n");
-    } else if (typeof response.output === "string") {
-      text = response.output;
     }
 
-    return new Response(JSON.stringify({ text }), { headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ text }), {
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error(err);
-    return new Response(`Server error: ${(err && err.message) || "unknown error"}`, { status: 500 });
+    return new Response(
+      `Server error: ${(err && err.message) || "unknown error"}`,
+      { status: 500 }
+    );
   }
 }

@@ -2,19 +2,45 @@
 import React, { useState, useRef, useEffect } from "react";
 
 export default function Home() {
-  const [files, setFiles] = useState([]); // {file, previewUrl, id}
+  const [files, setFiles] = useState([]);
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [apiKey, setApiKey] = useState("");
+  const [savedApiKey, setSavedApiKey] = useState("");
+  const [selectedModel, setSelectedModel] = useState("gpt-5-mini");
+
   const dragItem = useRef();
   const dragOverItem = useRef();
 
-  useEffect(() => {
-    return () => {
-      // revoke object URLs on unmount
-      files.forEach((f) => f.previewUrl && URL.revokeObjectURL(f.previewUrl));
-    };
-  }, [files]);
+useEffect(() => {
+  const savedKey = localStorage.getItem("openai_api_key");
+  if (savedKey) {
+    setApiKey(savedKey);
+    setSavedApiKey(savedKey); // make sure savedApiKey is set too
+  }
+
+  return () => {
+    // revoke object URLs on unmount
+    files.forEach((f) => f.previewUrl && URL.revokeObjectURL(f.previewUrl));
+  };
+}, [files]);
+
+  function handleSaveKey() {
+    if (apiKey) {
+      localStorage.setItem("openai_api_key", apiKey);
+      setSavedApiKey(apiKey);
+      alert("API Key saved locally on this device.");
+    }
+  }
+
+  function handleClearKey() {
+    localStorage.removeItem("openai_api_key");
+    setApiKey("");
+    setSavedApiKey("");
+    alert("API Key removed from this device.");
+  }
 
   function addFilesFromFileList(fileList) {
     const arr = Array.from(fileList).map((f) => ({
@@ -27,37 +53,21 @@ export default function Home() {
     setFiles((prev) => [...prev, ...arr]);
   }
 
-  function handleInputChange(e) {
-    addFilesFromFileList(e.target.files || []);
-  }
-
-  function handleDrop(e) {
-    e.preventDefault();
-    addFilesFromFileList(e.dataTransfer.files || []);
-  }
-
-  function handleDragOver(e) {
-    e.preventDefault();
-  }
-
-  function onDragStart(e, position) {
-    dragItem.current = position;
-  }
-
-  function onDragEnter(e, position) {
-    dragOverItem.current = position;
-  }
-
+  function handleInputChange(e) { addFilesFromFileList(e.target.files || []); }
+  function handleDrop(e) { e.preventDefault(); addFilesFromFileList(e.dataTransfer.files || []); }
+  function handleDragOver(e) { e.preventDefault(); }
+  function onDragStart(e, pos) { dragItem.current = pos; }
+  function onDragEnter(e, pos) { dragOverItem.current = pos; }
   function onDragEnd() {
-    const copyListItems = [...files];
+    const copyList = [...files];
     const dragIndex = dragItem.current;
     const dropIndex = dragOverItem.current;
     if (dragIndex === undefined || dropIndex === undefined) return;
-    const dragItemContent = copyListItems.splice(dragIndex, 1)[0];
-    copyListItems.splice(dropIndex, 0, dragItemContent);
+    const dragItemContent = copyList.splice(dragIndex, 1)[0];
+    copyList.splice(dropIndex, 0, dragItemContent);
     dragItem.current = null;
     dragOverItem.current = null;
-    setFiles(copyListItems);
+    setFiles(copyList);
   }
 
   function removeFile(id) {
@@ -70,57 +80,91 @@ export default function Home() {
 
   async function handleSubmit(e) {
     e && e.preventDefault();
-    setError("");
-    setResult("");
-    if (!files.length) {
-      setError("Please add at least one image file first.");
-      return;
-    }
+    setError(""); setResult("");
+    if (!savedApiKey) { setError("Please enter and save your OpenAI API Key first."); return; }
+    if (!files.length) { setError("Please add at least one image file first."); return; }
 
     const formData = new FormData();
     files.forEach((f) => formData.append("file", f.file));
+    formData.append("apiKey", savedApiKey);
+    formData.append("model", selectedModel);
 
     setLoading(true);
     try {
       const res = await fetch("/api/process", { method: "POST", body: formData });
-      if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(msg || "Request failed");
-      }
+      if (!res.ok) { const msg = await res.text(); throw new Error(msg || "Request failed"); }
       const data = await res.json();
       setResult(data.text || "");
-    } catch (err) {
-      setError(err.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError(err.message || "Something went wrong."); }
+    finally { setLoading(false); }
   }
 
-  async function handleCopy() {
-    if (!result) return;
-    try {
-      await navigator.clipboard.writeText(result);
-    } catch (err) {
-      setError("Failed to copy to clipboard.");
-    }
-  }
+  async function handleCopy() { if (!result) return; try { await navigator.clipboard.writeText(result); } catch { setError("Failed to copy to clipboard."); } }
+
+  const buttonStyle = {
+    background: "#008cff",
+    color: "#fff",
+    border: "none",
+    padding: "12px 20px",
+    fontSize: 16,
+    fontWeight: 600,
+    borderRadius: 6,
+    cursor: "pointer"
+  };
 
   return (
-    <main style={{ maxWidth: 820, margin: "28px auto", padding: 16 }}>
-      <h1 style={{ marginBottom: 8 }}>Note Digitizer</h1>
+    <main style={{ maxWidth: 820, margin: "28px auto", padding: 16, background: "#000", color: "#fff" }}>
+      <h1 style={{ marginBottom: 8 }}>N2D</h1>
       <p style={{ marginTop: 0, marginBottom: 16 }}>
         Upload photos of your handwritten notes. Reorder them by dragging, then click Convert to get a
-        single Markdown transcription.
+        single Markdown transcription. Your API key is stored directly on your device in your browser. We don't collect or store your data.
       </p>
 
+      {/* API Key Section */}
+      <div style={{ marginBottom: 16, padding: 12, border: "1px solid #fff", borderRadius: 6 }}>
+        <label htmlFor="apiKeyInput" style={{ display: "block", marginBottom: 6 }}>OpenAI API Key:</label>
+        <input
+          type="password"
+          id="apiKeyInput"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+          placeholder="sk-..."
+          style={{ width: "100%", marginBottom: 8, padding: 8, background: "#000", color: "#fff", border: "1px solid #fff", borderRadius: 4 }}
+        />
+        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+          <button type="button" style={buttonStyle} onClick={handleSaveKey}>Save Key</button>
+          <button type="button" style={buttonStyle} onClick={handleClearKey}>Delete Key</button>
+        </div>
+
+        {/* Model selector */}
+        <div>
+          <label htmlFor="modelSelect" style={{ marginRight: 8 }}>Choose model:</label>
+          <select
+            id="modelSelect"
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            style={{ padding: 8, background: "#000", color: "#fff", border: "1px solid #fff", borderRadius: 4 }}
+          >
+            <option value="gpt-5-mini">gpt-5-mini (recommended)</option>
+            <option value="gpt-4o-mini">gpt-4o-mini (middle model)</option>
+            <option value="gpt-5-nano">gpt-5-nano (the most cost effective)</option>
+            <option value="gpt-5">gpt-5 (the most powerful and expensive)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* File upload - disabled until API key saved */}
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         style={{
-          border: "2px dashed #ddd",
+          border: "2px dashed #fff",
           padding: 12,
           borderRadius: 8,
           marginBottom: 12,
+          opacity: savedApiKey ? 1 : 0.5,
+          pointerEvents: savedApiKey ? "auto" : "none",
+          background: "#000",
         }}
       >
         <input
@@ -129,8 +173,13 @@ export default function Home() {
           multiple
           onChange={handleInputChange}
           style={{ display: "block", marginBottom: 8 }}
+          disabled={!savedApiKey}
         />
-        <div style={{ fontSize: 13, color: "#666" }}>Or drag & drop images here — reorder by dragging items.</div>
+        <div style={{ fontSize: 13 }}>
+          {savedApiKey
+            ? "Or drag & drop images here — reorder by dragging items."
+            : "Enter and save your API Key first to enable file upload."}
+        </div>
       </div>
 
       {files.length > 0 && (
@@ -147,43 +196,55 @@ export default function Home() {
                 alignItems: "center",
                 gap: 12,
                 padding: 8,
-                border: "1px solid #eee",
+                border: "1px solid #fff",
                 borderRadius: 6,
-                background: "#000000",
+                background: "#000",
               }}
             >
               {f.previewUrl ? (
-                <img src={f.previewUrl} alt={f.file.name} style={{ width: 86, height: 64, objectFit: "cover" }} />
+                <img
+                  src={f.previewUrl}
+                  alt={f.file.name}
+                  style={{ width: 86, height: 64, objectFit: "cover", border: "1px solid #fff" }}
+                />
               ) : (
-                <div style={{ width: 86, height: 64, display: "grid", placeItems: "center", background: "#000000" }}>
+                <div
+                  style={{
+                    width: 86,
+                    height: 64,
+                    display: "grid",
+                    placeItems: "center",
+                    background: "#000",
+                    color: "#fff",
+                    border: "1px solid #fff",
+                  }}
+                >
                   <span style={{ fontSize: 12 }}>{f.file.name}</span>
                 </div>
               )}
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>{f.file.name}</div>
-                <div style={{ fontSize: 12, color: "#000000" }}>{Math.round(f.file.size / 1024)} KB</div>
+                <div style={{ fontSize: 12 }}>{Math.round(f.file.size / 1024)} KB</div>
               </div>
-              <button type="button" onClick={() => removeFile(f.id)} style={{ marginLeft: 8 }}>
-                Remove
-              </button>
+              <button type="button" style={buttonStyle} onClick={() => removeFile(f.id)}>Remove</button>
             </div>
           ))}
         </div>
       )}
 
       <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={handleSubmit} disabled={loading}>
+        <button onClick={handleSubmit} disabled={loading || !savedApiKey} style={buttonStyle}>
           {loading ? "Processing..." : "Convert"}
         </button>
-        <button onClick={() => { setFiles([]); setResult(""); setError(""); }}>
+        <button onClick={() => { setFiles([]); setResult(""); setError(""); }} style={buttonStyle}>
           Clear
         </button>
-        <button onClick={handleCopy} disabled={!result}>
+        <button onClick={handleCopy} disabled={!result} style={buttonStyle}>
           Copy Result
         </button>
       </div>
 
-      {error && <p style={{ color: "red", marginTop: 12 }}>{error}</p>}
+      {error && <p style={{ color: "#ff4d4f", marginTop: 12 }}>{error}</p>}
 
       {result && (
         <>
@@ -192,10 +253,14 @@ export default function Home() {
             value={result}
             readOnly
             rows={18}
-            style={{ width: "100%", fontFamily: "ui-monospace, Menlo, monospace" }}
+            style={{ width: "100%", fontFamily: "ui-monospace, Menlo, monospace", background: "#000", color: "#fff", border: "1px solid #fff", borderRadius: 4 }}
           />
         </>
       )}
+      <br></br>
+      <p style={{ marginTop: 32, marginBottom: 16, color: "#404040" }}>
+  Created and maintained by the <a href="https://agetero.com" target="_blank" rel="noopener noreferrer" style={{ color: "#404040", textDecoration: "underline" }}>AgeTero Agency</a>
+      </p>
     </main>
   );
 }
