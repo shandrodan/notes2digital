@@ -102,7 +102,7 @@ useEffect(() => {
   async function handleCopy() { if (!result) return; try { await navigator.clipboard.writeText(result); } catch { setError("Failed to copy to clipboard."); } }
 
   const buttonStyle = {
-    background: "#008cff",
+    background: "#fc7703",
     color: "#fff",
     border: "none",
     padding: "12px 20px",
