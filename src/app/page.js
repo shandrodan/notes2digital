@@ -113,7 +113,7 @@ useEffect(() => {
   };
 
   return (
-    <main style={{ maxWidth: 820, margin: "28px auto", padding: 16, background: "#000", color: "#fff" }}>
+    <main style={{ maxWidth: 820, margin: "28px auto", padding: 16, background: "#fff", color: "#000" }}>
       <h1 style={{ marginBottom: 8 }}>Paper Notes 2 Digital Notes</h1>
       <p style={{ marginTop: 0, marginBottom: 16 }}>
         Upload photos of your handwritten notes. Reorder them by dragging, then click Convert to get a
@@ -121,7 +121,7 @@ useEffect(() => {
       </p>
 
       {/* API Key Section */}
-      <div style={{ marginBottom: 16, padding: 12, border: "1px solid #fff", borderRadius: 6 }}>
+      <div style={{ marginBottom: 16, padding: 12, border: "1px solid #e6e6e6", borderRadius: 6 }}>
         <label htmlFor="apiKeyInput" style={{ display: "block", marginBottom: 6 }}>OpenAI API Key:</label>
         <input
           type="password"
@@ -129,7 +129,7 @@ useEffect(() => {
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           placeholder="sk-..."
-          style={{ width: "100%", marginBottom: 8, padding: 8, background: "#000", color: "#fff", border: "1px solid #fff", borderRadius: 4 }}
+          style={{ width: "100%", marginBottom: 8, padding: 8, background: "#fff", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
         />
         <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
           <button type="button" style={buttonStyle} onClick={handleSaveKey}>Save Key</button>
@@ -143,7 +143,7 @@ useEffect(() => {
             id="modelSelect"
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            style={{ padding: 8, background: "#000", color: "#fff", border: "1px solid #fff", borderRadius: 4 }}
+            style={{ padding: 8, background: "#fff", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
           >
             <option value="gpt-5-mini">gpt-5-mini (recommended)</option>
             <option value="gpt-4o-mini">gpt-4o-mini (middle model)</option>
@@ -158,13 +158,13 @@ useEffect(() => {
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         style={{
-          border: "2px dashed #fff",
+          border: "2px dashed #e6e6e6",
           padding: 12,
           borderRadius: 8,
           marginBottom: 12,
           opacity: savedApiKey ? 1 : 0.5,
           pointerEvents: savedApiKey ? "auto" : "none",
-          background: "#000",
+          background: "#fff",
         }}
       >
         <input
@@ -196,16 +196,16 @@ useEffect(() => {
                 alignItems: "center",
                 gap: 12,
                 padding: 8,
-                border: "1px solid #fff",
+                border: "1px solid #e6e6e6",
                 borderRadius: 6,
-                background: "#000",
+                background: "#fff",
               }}
             >
               {f.previewUrl ? (
                 <img
                   src={f.previewUrl}
                   alt={f.file.name}
-                  style={{ width: 86, height: 64, objectFit: "cover", border: "1px solid #fff" }}
+                  style={{ width: 86, height: 64, objectFit: "cover", border: "1px solid #e6e6e6" }}
                 />
               ) : (
                 <div
@@ -214,9 +214,9 @@ useEffect(() => {
                     height: 64,
                     display: "grid",
                     placeItems: "center",
-                    background: "#000",
-                    color: "#fff",
-                    border: "1px solid #fff",
+                    background: "#fff",
+                    color: "#000",
+                    border: "1px solid #e6e6e6",
                   }}
                 >
                   <span style={{ fontSize: 12 }}>{f.file.name}</span>
@@ -253,13 +253,13 @@ useEffect(() => {
             value={result}
             readOnly
             rows={18}
-            style={{ width: "100%", fontFamily: "ui-monospace, Menlo, monospace", background: "#000", color: "#fff", border: "1px solid #fff", borderRadius: 4 }}
+            style={{ width: "100%", fontFamily: "ui-monospace, Menlo, monospace", background: "#fff", color: "#000", border: "1px solid #000", borderRadius: 4 }}
           />
         </>
       )}
       <br></br>
-      <p style={{ marginTop: 32, marginBottom: 16, color: "#404040" }}>
-  Created and maintained by the <a href="https://agetero.com" target="_blank" rel="noopener noreferrer" style={{ color: "#404040", textDecoration: "underline" }}>AgeTero Agency</a>
+      <p style={{ marginTop: 32, marginBottom: 16, color: "#a8a8a8" }}>
+  Created and maintained by the <a href="https://agetero.com" target="_blank" rel="noopener noreferrer" style={{ color: "#a8a8a8", textDecoration: "underline" }}>AgeTero Agency</a>
       </p>
     </main>
   );
