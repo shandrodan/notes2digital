@@ -173,13 +173,23 @@ async function handleCopyFlashcards() {
     border: "none",
     padding: "12px 20px",
     fontSize: 16,
-    fontWeight: 600,
+    fontWeight: 500,
+    borderRadius: 6,
+    cursor: "pointer"
+  };
+    const buttonStyle2 = {
+    background: "#e3e3e3",
+    color: "#000",
+    border: "none",
+    padding: "12px 20px",
+    fontSize: 16,
+    fontWeight: 500,
     borderRadius: 6,
     cursor: "pointer"
   };
 
   return (
-    <main style={{ maxWidth: 820, margin: "28px auto", padding: 16, background: "#fff", color: "#000" }}>
+    <main style={{ maxWidth: 820, margin: "28px auto", padding: 16, background: "#f5f5f5", color: "#000", borderRadius: 6 }}>
       <h1 style={{ marginBottom: 8 }}>Paper Notes 2 Digital Notes</h1>
       <p style={{ marginTop: 0, marginBottom: 16 }}>
         Upload photos of your handwritten notes. Reorder them by dragging, then click Convert to get a
@@ -198,8 +208,8 @@ async function handleCopyFlashcards() {
           style={{ width: "100%", marginBottom: 8, padding: 8, background: "#fff", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
         />
         <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-          <button type="button" style={buttonStyle} onClick={handleSaveKey}>Save Key</button>
-          <button type="button" style={buttonStyle} onClick={handleClearKey}>Delete Key</button>
+          <button type="button" style={buttonStyle2} onClick={handleSaveKey}>Save Key</button>
+          <button type="button" style={buttonStyle2} onClick={handleClearKey}>Delete Key</button>
         </div>
 
         {/* Model selector */}
@@ -209,12 +219,15 @@ async function handleCopyFlashcards() {
             id="modelSelect"
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            style={{ padding: 8, background: "#fff", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
+            style={{ padding: 8, background: "none", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
           >
             <option value="gpt-5-mini">gpt-5-mini (recommended)</option>
             <option value="gpt-4o-mini">gpt-4o-mini (middle model)</option>
             <option value="gpt-5-nano">gpt-5-nano (the most cost effective)</option>
             <option value="gpt-5">gpt-5 (the most powerful and expensive)</option>
+            <option value="o3">o3 (w/ reasoning)</option>
+            <option value="o3-mini">o3-mini (w/ reasoning)</option>
+            <option value="o4-mini">o4-mini (w/ reasoning)</option>
           </select>
         </div>
       </div>
@@ -230,7 +243,6 @@ async function handleCopyFlashcards() {
           marginBottom: 12,
           opacity: savedApiKey ? 1 : 0.5,
           pointerEvents: savedApiKey ? "auto" : "none",
-          background: "#fff",
         }}
       >
         <input
@@ -305,10 +317,10 @@ async function handleCopyFlashcards() {
         <button onClick={handleSubmit} disabled={loading || !savedApiKey} style={buttonStyle}>
           {loading ? "Processing..." : "Convert"}
         </button>
-        <button onClick={() => { setFiles([]); setResult(""); setError(""); }} style={buttonStyle}>
+        <button onClick={() => { setFiles([]); setResult(""); setError(""); }} style={buttonStyle2}>
           Clear
         </button>
-        <button onClick={handleCopy} disabled={!result} style={buttonStyle}>
+        <button onClick={handleCopy} disabled={!result} style={buttonStyle2}>
           Copy Result
         </button>
       </div>
@@ -332,7 +344,7 @@ async function handleCopyFlashcards() {
             <div style={{ marginBottom: 8 }}>
               <label style={{ marginRight: 8 }}>What to focus on?</label>
               <select 
-              style={{ padding: 8, background: "#fff", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
+              style={{ padding: 8, background: "none", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
               value={flashFocus} onChange={(e) => setFlashFocus(e.target.value)}>
                 <option value="vocabulary">Vocabulary and Language</option>
                 <option value="terminology">Terminology and Concepts</option>
@@ -343,7 +355,7 @@ async function handleCopyFlashcards() {
             <div style={{ marginBottom: 8 }}>
               <label style={{ marginRight: 8 }}>Number of flashcards:</label>
               <select 
-              style={{ padding: 8, background: "#fff", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
+              style={{ padding: 8, background: "none", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
               value={flashAmount} onChange={(e) => setFlashAmount(e.target.value)}>
                 <option value="auto">Let AI decide (default)</option>
                 <option value="small">5</option>
@@ -358,24 +370,25 @@ async function handleCopyFlashcards() {
                 disabled={flashLoading || !savedApiKey}
                 style={buttonStyle}
               >
-                {flashLoading ? "Generating Flashcards..." : "Generate Flashcards"}
-              </button>
-
-              <button
-                onClick={handleCopyFlashcards}
-                disabled={!flashcards}
-                style={buttonStyle}
-              >
-                Copy Flashcards
+                {flashLoading ? "Generating..." : "Generate"}
               </button>
 
               <button
                 onClick={handleClearFlashcards}
                 disabled={!flashcards}
-                style={buttonStyle}
+                style={buttonStyle2}
               >
-                Clear Flashcards
+                Clear
               </button>
+
+              <button
+                onClick={handleCopyFlashcards}
+                disabled={!flashcards}
+                style={buttonStyle2}
+              >
+                Copy
+              </button>
+
             </div>
 
             {flashcards && (
