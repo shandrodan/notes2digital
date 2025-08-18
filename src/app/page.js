@@ -10,6 +10,11 @@ export default function Home() {
   const [apiKey, setApiKey] = useState("");
   const [savedApiKey, setSavedApiKey] = useState("");
   const [selectedModel, setSelectedModel] = useState("gpt-5-mini");
+  // Flashcards feature states
+  const [flashcards, setFlashcards] = useState("");
+  const [flashFocus, setFlashFocus] = useState("vocabulary");
+  const [flashAmount, setFlashAmount] = useState("auto"); // default: Let AI decide
+  const [flashLoading, setFlashLoading] = useState(false);
 
   const dragItem = useRef();
   const dragOverItem = useRef();
@@ -69,6 +74,27 @@ useEffect(() => {
     dragOverItem.current = null;
     setFiles(copyList);
   }
+  function onTouchStart(e, pos) {
+  dragItem.current = pos;
+}
+
+function onTouchMove(e, pos) {
+  e.preventDefault(); // prevents scrolling while dragging
+  dragOverItem.current = pos;
+}
+
+function onTouchEnd() {
+  const copyList = [...files];
+  const dragIndex = dragItem.current;
+  const dropIndex = dragOverItem.current;
+  if (dragIndex === undefined || dropIndex === undefined) return;
+  const draggedItem = copyList.splice(dragIndex, 1)[0];
+  copyList.splice(dropIndex, 0, draggedItem);
+  dragItem.current = null;
+  dragOverItem.current = null;
+  setFiles(copyList);
+}
+
 
   function removeFile(id) {
     setFiles((prev) => {
@@ -98,6 +124,46 @@ useEffect(() => {
     } catch (err) { setError(err.message || "Something went wrong."); }
     finally { setLoading(false); }
   }
+  async function handleClearFlashcards() {
+  setFlashcards("");
+  setError("");
+}
+    async function handleFlashcards() {
+    setError(""); setFlashcards("");
+    if (!savedApiKey) { setError("Please enter and save your OpenAI API Key first."); return; }
+    if (!result) { setError("Please generate your digital note first."); return; }
+
+    setFlashLoading(true);
+    try {
+      const res = await fetch("/api/flashcards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          apiKey: savedApiKey,
+          model: selectedModel,
+          focus: flashFocus,
+          amount: flashAmount,
+          note: result
+        })
+      });
+
+      if (!res.ok) { const msg = await res.text(); throw new Error(msg || "Flashcard request failed"); }
+      const data = await res.json();
+      setFlashcards(data.text || "");
+    } catch (err) {
+      setError(err.message || "Something went wrong while generating flashcards.");
+    } finally {
+      setFlashLoading(false);
+    }
+  }
+async function handleCopyFlashcards() {
+  if (!flashcards) return;
+  try {
+    await navigator.clipboard.writeText(flashcards);
+  } catch {
+    setError("Failed to copy flashcards to clipboard.");
+  }
+}
 
   async function handleCopy() { if (!result) return; try { await navigator.clipboard.writeText(result); } catch { setError("Failed to copy to clipboard."); } }
 
@@ -191,6 +257,9 @@ useEffect(() => {
               onDragStart={(e) => onDragStart(e, idx)}
               onDragEnter={(e) => onDragEnter(e, idx)}
               onDragEnd={onDragEnd}
+              onTouchStart={(e) => onTouchStart(e, idx)}
+              onTouchMove={(e) => onTouchMove(e, idx)}
+              onTouchEnd={onTouchEnd}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -257,6 +326,78 @@ useEffect(() => {
           />
         </>
       )}
+                {/* Flashcards Section */}
+          <div style={{ marginTop: 28, padding: 12, border: "1px solid #e6e6e6", borderRadius: 6 }}>
+            <h2>Generate Flashcards</h2>
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ marginRight: 8 }}>What to focus on?</label>
+              <select 
+              style={{ padding: 8, background: "#fff", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
+              value={flashFocus} onChange={(e) => setFlashFocus(e.target.value)}>
+                <option value="vocabulary">Vocabulary and Language</option>
+                <option value="terminology">Terminology and Concepts</option>
+                <option value="quiz">Quiz</option>
+              </select>
+            </div>
+
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ marginRight: 8 }}>Number of flashcards:</label>
+              <select 
+              style={{ padding: 8, background: "#fff", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
+              value={flashAmount} onChange={(e) => setFlashAmount(e.target.value)}>
+                <option value="auto">Let AI decide (default)</option>
+                <option value="small">5</option>
+                <option value="medium">10</option>
+                <option value="large">20</option>
+              </select>
+            </div>
+
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button
+                onClick={handleFlashcards}
+                disabled={flashLoading || !savedApiKey}
+                style={buttonStyle}
+              >
+                {flashLoading ? "Generating Flashcards..." : "Generate Flashcards"}
+              </button>
+
+              <button
+                onClick={handleCopyFlashcards}
+                disabled={!flashcards}
+                style={buttonStyle}
+              >
+                Copy Flashcards
+              </button>
+
+              <button
+                onClick={handleClearFlashcards}
+                disabled={!flashcards}
+                style={buttonStyle}
+              >
+                Clear Flashcards
+              </button>
+            </div>
+
+            {flashcards && (
+              <>
+                <h3 style={{ marginTop: 20 }}>Flashcards</h3>
+                <textarea
+                  value={flashcards}
+                  readOnly
+                  rows={14}
+                  style={{
+                    width: "100%",
+                    fontFamily: "ui-monospace, Menlo, monospace",
+                    background: "#fff",
+                    color: "#000",
+                    border: "1px solid #000",
+                    borderRadius: 4
+                  }}
+                />
+              </>
+            )}
+          </div>
+
       <br></br>
       <p style={{ marginTop: 32, marginBottom: 16, color: "#a8a8a8" }}>
   Created and maintained by the <a href="https://agetero.com" target="_blank" rel="noopener noreferrer" style={{ color: "#a8a8a8", textDecoration: "underline" }}>AgeTero Agency</a>
