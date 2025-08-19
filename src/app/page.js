@@ -13,7 +13,6 @@ export default function Home() {
   // Flashcards feature states
   const [flashcards, setFlashcards] = useState("");
   const [flashFocus, setFlashFocus] = useState("vocabulary");
-  const [flashAmount, setFlashAmount] = useState("auto"); // default: Let AI decide
   const [flashLoading, setFlashLoading] = useState(false);
 
   const dragItem = useRef();
@@ -142,9 +141,9 @@ function onTouchEnd() {
           apiKey: savedApiKey,
           model: selectedModel,
           focus: flashFocus,
-          amount: flashAmount,
           note: result
         })
+
       });
 
       if (!res.ok) { const msg = await res.text(); throw new Error(msg || "Flashcard request failed"); }
@@ -349,18 +348,6 @@ async function handleCopyFlashcards() {
                 <option value="vocabulary">Vocabulary and Language</option>
                 <option value="terminology">Terminology and Concepts</option>
                 <option value="quiz">Quiz</option>
-              </select>
-            </div>
-
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ marginRight: 8 }}>Number of flashcards:</label>
-              <select 
-              style={{ padding: 8, background: "none", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
-              value={flashAmount} onChange={(e) => setFlashAmount(e.target.value)}>
-                <option value="auto">Let AI decide (default)</option>
-                <option value="small">5</option>
-                <option value="medium">10</option>
-                <option value="large">20</option>
               </select>
             </div>
 
