@@ -3,7 +3,7 @@ import OpenAI from "openai";
 
 export async function POST(req) {
   try {
-    const { apiKey, model, focus, note } = await req.json();
+    const { apiKey, model, focus, direction, note } = await req.json();
     if (!apiKey) return new Response("Missing API key", { status: 400 });
     if (!note) return new Response("No note provided", { status: 400 });
 
@@ -16,7 +16,7 @@ export async function POST(req) {
             promptBase = `You are a flashcard generator. I will provide lecture notes, and you must create quiz-style flashcards using this exact format:
 Format Requirements:
 
-Use "Question >> Answer" structure
+Use "Question \n${direction} Answer" structure
 Each flashcard on a new line
 No introductory text, explanations, or additional commentary
 Focus on testable knowledge from the lecture content
@@ -30,9 +30,9 @@ Cover the main topics comprehensively
 Find concepts and definitions in text, generate and add information yourself as little as possible
 
 Example Output:
-What is [concept]? >> [Definition/explanation]
-How does [process] work? >> [Step-by-step explanation]
-What are the key features of [topic]? >> [List of features]
+What is [concept]? \n${direction} [Definition/explanation]
+How does [process] work? \n${direction} [Step-by-step explanation]
+What are the key features of [topic]? \n${direction} [List of features]
 
 Here are my lecture notes:
 
@@ -42,7 +42,7 @@ Lecture Notes:\n${note}`;
             promptBase = `You are a vocabulary flashcard generator for language learning. I will provide lecture notes, and you must create flashcards using this exact format:
 Format Requirements:
 
-Use "Word/Term >> Definition" structure
+Use "Word/Term \n${direction} Definition" structure
 Each flashcard on a new line
 No additional text, explanations, or commentary
 Output only the flashcards
@@ -55,9 +55,9 @@ Add minimal additional information - rely primarily on what's in the text
 If a word list is provided, include ALL words from that list
 
 Example Output:
-[Word] >> [Definition from text]
-[Term] >> [Explanation provided in notes]
-[Vocabulary] >> [Meaning given in source]
+[Word] \n${direction} [Definition from text]
+[Term] \n${direction} [Explanation provided in notes]
+[Vocabulary] \n${direction} [Meaning given in source]
 Here are my lecture notes:
 \n${note}`;
             break;
@@ -65,7 +65,7 @@ Here are my lecture notes:
             promptBase = `You are a comprehensive flashcard generator for terminology and concepts. I will provide lecture notes, and you must create flashcards using this exact format:
 Format Requirements:
 
-Use "Question >> Answer" structure
+Use "Question \n${direction} Answer" structure
 Each flashcard on a new line
 No additional text, explanations, or commentary
 Output only the flashcards
@@ -81,16 +81,16 @@ Only provide your own explanation if absolutely no explanation exists in the tex
 Prioritize completeness - capture every defined term and concept
 
 Example Output:
-What is [term]? >> [Exact definition from text]
-What is the formula for [concept]? >> [Formula from notes]
-How is [concept] defined? >> [Definition provided in source]
+What is [term]? \n${direction} [Exact definition from text]
+What is the formula for [concept]? \n${direction} [Formula from notes]
+How is [concept] defined? \n${direction} [Definition provided in source]
 Here are my lecture notes: \n${note}`;
             break;
         default:
             promptBase = `You are a flashcard generator. I will provide source material, and you must create flashcards using this exact format:
 Format Requirements:
 
-Use "Question >> Answer" structure
+Use "Question \n${direction} Answer" structure
 Each flashcard on a new line
 No additional text, explanations, or commentary
 Output only the flashcards
@@ -106,9 +106,9 @@ Keep answers concise but complete
 Only add your own explanations if the source material lacks clarity (rare cases)
 
 Example Output:
-What is [concept]? >> [Definition/explanation]
-How does [process] work? >> [Step-by-step explanation]
-What are [item]? >> [Description/list]
+What is [concept]? \n${direction} [Definition/explanation]
+How does [process] work? \n${direction} [Step-by-step explanation]
+What are [item]? \n${direction} [Description/list]
 Here is my source material:\n${note}`;
         }
 

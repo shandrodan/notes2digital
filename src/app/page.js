@@ -13,6 +13,7 @@ export default function Home() {
   // Flashcards feature states
   const [flashcards, setFlashcards] = useState("");
   const [flashFocus, setFlashFocus] = useState("vocabulary");
+  const [flashDirection, setFlashDirection] = useState("Default");
   const [flashLoading, setFlashLoading] = useState(false);
 
   const dragItem = useRef();
@@ -141,6 +142,7 @@ function onTouchEnd() {
           apiKey: savedApiKey,
           model: selectedModel,
           focus: flashFocus,
+          direction: flashDirection,
           note: result
         })
 
@@ -326,17 +328,22 @@ async function handleCopyFlashcards() {
 
       {error && <p style={{ color: "#ff4d4f", marginTop: 12 }}>{error}</p>}
 
-      {result && (
-        <>
-          <h2 style={{ marginTop: 20 }}>Result</h2>
-          <textarea
-            value={result}
-            readOnly
-            rows={18}
-            style={{ width: "100%", fontFamily: "ui-monospace, Menlo, monospace", background: "#fff", color: "#000", border: "1px solid #000", borderRadius: 4 }}
-          />
-        </>
-      )}
+        <h2 style={{ marginTop: 20 }}>Result</h2>
+        <textarea
+          value={result}
+          onChange={(e) => setResult(e.target.value)}
+          rows={18}
+          placeholder="Your converted note will appear here. You can also type or edit freely."
+          style={{
+            width: "100%",
+            fontFamily: "ui-monospace, Menlo, monospace",
+            background: "#fff",
+            color: "#000",
+            border: "1px solid #000",
+            borderRadius: 4
+          }}
+        />
+
                 {/* Flashcards Section */}
           <div style={{ marginTop: 28, padding: 12, border: "1px solid #e6e6e6", borderRadius: 6 }}>
             <h2>Generate Flashcards</h2>
@@ -348,6 +355,17 @@ async function handleCopyFlashcards() {
                 <option value="vocabulary">Vocabulary and Language</option>
                 <option value="terminology">Terminology and Concepts</option>
                 <option value="quiz">Quiz</option>
+              </select>
+            </div>
+
+                        <div style={{ marginBottom: 8 }}>
+              <label style={{ marginRight: 8 }}>ADVANCED | Flashcards direction:</label>
+              <select 
+              style={{ padding: 8, background: "none", color: "#000", border: "1px solid #e6e6e6", borderRadius: 4 }}
+              value={flashDirection} onChange={(e) => setFlashDirection(e.target.value)}>
+                <option value=">>">Default</option>
+                <option value="<<">Backwards</option>
+                <option value="<>">Both Ways</option>
               </select>
             </div>
 
