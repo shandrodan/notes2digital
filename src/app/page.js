@@ -13,7 +13,7 @@ export default function Home() {
   // Flashcards feature states
   const [flashcards, setFlashcards] = useState("");
   const [flashFocus, setFlashFocus] = useState("vocabulary");
-  const [flashDirection, setFlashDirection] = useState("Default");
+  const [flashDirection, setFlashDirection] = useState(">>");
   const [flashLoading, setFlashLoading] = useState(false);
 
   const dragItem = useRef();
