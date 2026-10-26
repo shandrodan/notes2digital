@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Notes to Digital
 
-## Getting Started
+A small web app and public landing that turns photos of handwritten notes into one Markdown document, then into flashcards.
 
-First, run the development server:
+Live: [notes2digital.vercel.app](https://notes2digital.vercel.app)
+
+Portfolio project by [Dan Shandro](https://danshandro.com), design engineer and product designer.
+
+## Who it's for
+
+Students and anyone who photographs lecture or study notes and wants them as editable Markdown (the transcription is written for tools like Notion). After conversion, the same page can generate vocabulary, terminology, or quiz flashcards from that text.
+
+You supply your own OpenAI API key. It is saved in the browser and sent with each request. The app does not keep a database of keys or notes.
+
+## Stack
+
+- Next.js 15 (App Router) and React 18, in JavaScript
+- Node.js route handlers call the OpenAI API
+- npm (`package-lock.json`)
+
+Node.js 18.18+, 19.8+, or 20+ (the range required by Next.js 15.4).
+
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Save an API key on the page, add images, reorder them, then convert.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+npm run build   # production build
+npm start       # serve the build
+npm run lint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+No environment file is required.
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/app/page.js                   Product page: upload, reorder, convert, flashcards
+src/app/layout.js                 Root layout and metadata
+src/app/globals.css               Global styles
+src/app/api/process/route.js      Images → Markdown
+src/app/api/flashcards/route.js   Markdown → flashcards
+public/                           Static assets
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`/api/process` accepts the page images in order (JPEG, PNG, HEIC, and other image types) and returns Markdown. `/api/flashcards` reads that note and returns cards in the selected focus and direction.
